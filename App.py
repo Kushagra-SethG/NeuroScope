@@ -75,22 +75,54 @@ if uploaded_file is not None:
     results = model.predict(source=tmp_path, conf=0.25)
     progress.progress(80, text="Processing results...")
 
+
     # Check if any tumors detected (YOLO returns boxes in results[0].boxes)
     boxes = results[0].boxes
     if boxes is not None and len(boxes) > 0:
         st.error("⚠️ Tumor detected! Please consult a medical professional.")
         st.markdown(f"**Number of detected regions:** {len(boxes)}")
+        # Diagnosis regions table (without confidence)
+        st.subheader("Detected Regions")
+        import pandas as pd
+        regions = []
+        for i, box in enumerate(boxes):
+            cls = int(box.cls[0]) if hasattr(box, 'cls') else None
+            regions.append({
+                "Region": i+1,
+                "Class": cls
+            })
+        df_regions = pd.DataFrame(regions)
+        st.dataframe(df_regions)
     else:
         st.success("✅ No tumor detected.")
 
-    # Save and display result
+
+    # Draw bounding boxes (no confidence score) on the image
+    annotated_image = image.copy()
+    from PIL import ImageDraw, ImageFont
+    draw = ImageDraw.Draw(annotated_image)
+    try:
+        font = ImageFont.truetype("arial.ttf", 18)
+    except:
+        font = ImageFont.load_default()
+    if boxes is not None and len(boxes) > 0:
+        for box in boxes:
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            draw.rectangle([x1, y1, x2, y2], outline="red", width=3)
+    # Save annotated image
     result_img_path = os.path.join("result.jpg")
-    results[0].save(filename=result_img_path)
+    annotated_image.save(result_img_path)
+
+
+    # (Attention map code removed as per user request)
 
     progress.progress(100, text="Detection complete!")
     st.markdown("---")
     st.subheader("Step 4: Detection Result")
     st.image(result_img_path, caption="Detection Result", use_container_width=True)
+
+
+    # (Attention map display removed as per user request)
 
     with open(result_img_path, "rb") as f:
         st.download_button(
@@ -101,3 +133,4 @@ if uploaded_file is not None:
         )
 
     st.info("Detection complete! For best results, use high-quality MRI/CT images.")
+    
