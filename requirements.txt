@@ -4,4 +4,13 @@ ultralytics==8.0.196
 streamlit
 Pillow
 pandas
-opencv-python-headless==4.8.1.78
+torch>=2.0.0,<2.6.0
+torchvision>=0.15.0
+ultralytics
+streamlit
+Pillow
+pandas
+opencv-python-headless
+rich>=10.14.0
+markdown-it-py>=2.2.0
+pygments<3.0.0,>=2.13.0==4.8.1.78
