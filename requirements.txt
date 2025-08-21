@@ -1,3 +1,5 @@
+torch==2.4.0
+torchvision==0.19.0
 ultralytics==8.0.196
 streamlit
 Pillow
