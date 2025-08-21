@@ -4,10 +4,22 @@ from PIL import Image
 import tempfile
 import os
 from datetime import datetime
+import torch
+
+# Fix for PyTorch 2.6 weights_only issue
+torch.serialization.add_safe_globals([
+    'ultralytics.nn.tasks.DetectionModel',
+    'ultralytics.nn.tasks.SegmentationModel', 
+    'ultralytics.nn.tasks.ClassificationModel',
+    'ultralytics.nn.tasks.PoseModel',
+    'ultralytics.nn.modules.conv.Conv',
+    'ultralytics.nn.modules.block.C2f',
+    'ultralytics.nn.modules.head.Detect'
+])
 
 st.set_page_config(
     page_title="NeuroScope: AI Brain Tumor Detector",
-    page_icon="�",
+    page_icon="🧠",
     layout="centered",
     initial_sidebar_state="expanded"
 )
@@ -16,7 +28,7 @@ st.set_page_config(
 # Sidebar
 # ============================  
 with st.sidebar:
-    st.title("� NeuroScope")
+    st.title("🧠 NeuroScope")
     st.markdown("""
     **Instructions:**
     - Upload an MRI/CT scan image (JPG, JPEG, PNG).
@@ -35,18 +47,25 @@ with st.sidebar:
 # ============================
 @st.cache_resource
 def load_model():
-    model = YOLO("yolov8n.pt")   # Change path if needed
-    return model
+    try:
+        model = YOLO("yolov8n.pt")   # Change path if needed
+        return model
+    except Exception as e:
+        st.error(f"Error loading model: {str(e)}")
+        return None
 
 model = load_model()
+
+if model is None:
+    st.error("Failed to load YOLO model. Please check your model file.")
+    st.stop()
 
 # ============================
 # Streamlit UI
 # ============================
 
-
 st.markdown("""
-#  NeuroScope: AI Brain Tumor Detector
+# 🧠 NeuroScope: AI Brain Tumor Detector
 Detect brain tumors in MRI/CT images using state-of-the-art YOLOv8 deep learning.
 """)
 
@@ -75,7 +94,6 @@ if uploaded_file is not None:
     results = model.predict(source=tmp_path, conf=0.25)
     progress.progress(80, text="Processing results...")
 
-
     # Check if any tumors detected (YOLO returns boxes in results[0].boxes)
     boxes = results[0].boxes
     if boxes is not None and len(boxes) > 0:
@@ -96,7 +114,6 @@ if uploaded_file is not None:
     else:
         st.success("✅ No tumor detected.")
 
-
     # Draw bounding boxes (no confidence score) on the image
     annotated_image = image.copy()
     from PIL import ImageDraw, ImageFont
@@ -113,16 +130,10 @@ if uploaded_file is not None:
     result_img_path = os.path.join("result.jpg")
     annotated_image.save(result_img_path)
 
-
-    # (Attention map code removed as per user request)
-
     progress.progress(100, text="Detection complete!")
     st.markdown("---")
     st.subheader("Step 4: Detection Result")
     st.image(result_img_path, caption="Detection Result", use_container_width=True)
-
-
-    # (Attention map display removed as per user request)
 
     with open(result_img_path, "rb") as f:
         st.download_button(
@@ -133,4 +144,3 @@ if uploaded_file is not None:
         )
 
     st.info("Detection complete! For best results, use high-quality MRI/CT images.")
-    
