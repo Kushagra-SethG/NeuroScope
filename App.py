@@ -94,53 +94,26 @@ if uploaded_file is not None:
     results = model.predict(source=tmp_path, conf=0.25)
     progress.progress(80, text="Processing results...")
 
-    # Check if any tumors detected (YOLO returns boxes in results[0].boxes)
+    # Check if any tumors detected
     boxes = results[0].boxes
-    if boxes is not None and len(boxes) > 0:
-        st.error("⚠️ Tumor detected! Please consult a medical professional.")
-        st.markdown(f"**Number of detected regions:** {len(boxes)}")
-        # Diagnosis regions table (without confidence)
-        st.subheader("Detected Regions")
-        import pandas as pd
-        regions = []
-        for i, box in enumerate(boxes):
-            cls = int(box.cls[0]) if hasattr(box, 'cls') else None
-            regions.append({
-                "Region": i+1,
-                "Class": cls
-            })
-        df_regions = pd.DataFrame(regions)
-        st.dataframe(df_regions)
-    else:
-        st.success("✅ No tumor detected.")
-
-    # Draw bounding boxes (no confidence score) on the image
-    annotated_image = image.copy()
-    from PIL import ImageDraw, ImageFont
-    draw = ImageDraw.Draw(annotated_image)
-    try:
-        font = ImageFont.truetype("arial.ttf", 18)
-    except:
-        font = ImageFont.load_default()
-    if boxes is not None and len(boxes) > 0:
-        for box in boxes:
-            x1, y1, x2, y2 = map(int, box.xyxy[0])
-            draw.rectangle([x1, y1, x2, y2], outline="red", width=3)
-    # Save annotated image
-    result_img_path = os.path.join("result.jpg")
-    annotated_image.save(result_img_path)
-
     progress.progress(100, text="Detection complete!")
     st.markdown("---")
     st.subheader("Step 4: Detection Result")
-    st.image(result_img_path, caption="Detection Result", use_container_width=True)
+    
+    if boxes is not None and len(boxes) > 0:
+        st.error("⚠️ TUMOR DETECTED!")
+        st.markdown("""
+        ### Important Notice:
+        - This is a preliminary screening result
+        - Please consult a medical professional immediately
+        - This tool is for educational purposes only
+        """)
+    else:
+        st.success("✅ No tumor detected in the image")
+        st.info("Note: Always consult healthcare professionals for medical advice.")
 
-    with open(result_img_path, "rb") as f:
-        st.download_button(
-            label="Download Annotated Image",
-            data=f,
-            file_name="detection_result.jpg",
-            mime="image/jpeg"
-        )
+    # Display the original image
+    st.image(image, caption="Analyzed Image", use_container_width=True)
 
-    st.info("Detection complete! For best results, use high-quality MRI/CT images.")
+    st.markdown("---")
+    st.warning("Remember: This is an educational tool and should not be used for clinical diagnosis.")
