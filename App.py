@@ -37,7 +37,7 @@ with st.sidebar:
     """)
     st.markdown("---")
     st.markdown("**Model:** YOLOv8n (Ultralytics)")
-    st.markdown("**App by:** Kushagra Agrawal")
+    st.markdown("**App by:** Team No. 79")
     st.markdown("**Date:** {}".format(datetime.now().strftime("%B %d, %Y")))
     st.markdown("---")
     st.info("This app is for educational/demo purposes only. Not for clinical use.")
