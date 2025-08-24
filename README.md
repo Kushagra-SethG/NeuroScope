@@ -105,11 +105,7 @@ The application uses YOLOv8n model with the following settings:
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
+##  Acknowledgments
 
 - **Ultralytics** for the YOLOv8 model
 - **Streamlit** for the web framework
